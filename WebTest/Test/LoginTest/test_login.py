@@ -1,7 +1,9 @@
+import os
+import sys
+
 import pytest
 
-# from ApiTest.CommonApiService.api_services import ApiServices
-from Infra.BaseData.GetData import loaded_data, VarData
+from Infra.BaseData import GetData
 from WebTest.Flows.login_flow import LoginFlow
 from WebTest.WebInfra.web_driver_factory import WebDriverFactory
 
@@ -9,20 +11,16 @@ from WebTest.WebInfra.web_driver_factory import WebDriverFactory
 @pytest.mark.webtest
 class TestLoginWeb:
     def setup_method(self):
-        self.driver = WebDriverFactory(headless=False)
+        self.driver = WebDriverFactory()
         self.page = self.driver.get_page()
-        self.base_url = loaded_data[VarData.WebUrl]
-        self.username = loaded_data[VarData.WebUserName]
-        self.password = loaded_data[VarData.WebPassword]
+
+        self.url = GetData.loaded_data[GetData.VarData.WebUrl]
+        self.web_user_name = GetData.loaded_data[GetData.VarData.WebUserName]
+        self.web_password = GetData.loaded_data[GetData.VarData.WebPassword]
 
 
-    def test_login(self):
-        flow = LoginFlow(self.page)
-        flow.open_page(True, url=self.base_url)
-
-        #region API Services
-        # api = ApiServices()
-        # user_id = api.get_user_id(1, "Benny shor")
-        #endregion
-        flow.do_valid_login(self.username, self.password)
-        assert flow.is_home_page_open(), "Home page not opened"
+    def test_login_web(self):
+        login_flow = LoginFlow(self.page)
+        login_flow.open_page(True, url=self.url)
+        login_flow.login_web_flow(self.web_user_name, self.web_password)
+        assert login_flow.is_eamil_display_on_dashboard(self.web_user_name) , "Login failed - User email not displayed on dashboard"

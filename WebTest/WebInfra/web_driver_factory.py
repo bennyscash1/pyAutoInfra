@@ -43,9 +43,3 @@ class WebDriverFactory:
         finally:
             if getattr(self, "_playwright", None):
                 self._playwright.stop()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close_browser()

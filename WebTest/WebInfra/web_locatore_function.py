@@ -1,61 +1,42 @@
-from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
-import unittest
+from playwright.sync_api import Page
 
-class WeblocatoreFunction():
-    DEFAULT_TIMEOUT_IN_SECONDS = 20.0
+
+class WeblocatoreFunction:
+    DEFAULT_TIMEOUT_MS = 20_000
+
     def __init__(self, page: Page):
         self.page = page
 
     def is_element_found(self, selector: str) -> bool:
         try:
-            if self.page.is_visible(selector, timeout=self.DEFAULT_TIMEOUT_IN_SECONDS):
-                return True
-            else:
-                print(f"Element '{selector}' found in the DOM but not visible.")
-                return False
-        except TimeoutError:
-            print(f"Element '{selector}' not found within {self.DEFAULT_TIMEOUT_IN_SECONDS } seconds")
+            return self.page.locator(selector).is_visible(timeout=self.DEFAULT_TIMEOUT_MS)
+        except Exception:
             return False
 
+    def wait_for_element_visibility(self, selector: str) -> None:
+        if not self.is_element_found(selector):
+            raise AssertionError(
+                f"Element {selector} not visible within {self.DEFAULT_TIMEOUT_MS / 1000}s"
+            )
 
-    def wait_for_element_visibility(self, selector):
-        element_visible = self.is_element_found(selector)
-        element_details = f"Element {selector} search failed within {self.DEFAULT_TIMEOUT_IN_SECONDS } seconds"
-        self.assertTrue(element_visible, element_details)
+    def click(self, selector: str) -> None:
+        self.page.locator(selector).click(timeout=self.DEFAULT_TIMEOUT_MS)
 
-    def click(self, selector: str):
-        element_visible = self.is_element_found(selector)
-        if element_visible:
-            self.page.click(selector)
-        else:
-            element_details = f"Element {selector} click failed within {self.DEFAULT_TIMEOUT_IN_SECONDS } seconds"
-            self.assertTrue(element_visible, element_details)
+    def fill_text(self, selector: str, text: str) -> None:
+        self.page.locator(selector).fill(text, timeout=self.DEFAULT_TIMEOUT_MS)
 
-    def fill_text(self, selector: str, text):
-      #  self.page.fill(selector, text)
-        element_visible = self.is_element_found(selector)
-        if element_visible:
-            self.page.fill(selector, text)
-        else:
-            element_details = f"Element {selector} click failed within {self.DEFAULT_TIMEOUT_IN_SECONDS} seconds"
-            self.assertTrue(element_visible, element_details)
+    def switch_to_frame(self, frame_selector: str):
+        self.page.frame_locator(frame_selector)
 
-    def switch_to_frame(self, frame_selector):
-        self.page.frame(frame_selector)
-
-    def is_displayed(self, selector):
-        try:
-            self.wait_for_element_visibility(selector)
-            return self.page.is_visible(selector)
-        except PlaywrightTimeoutError:
-            return False
+    def is_displayed(self, selector: str) -> bool:
+        return self.is_element_found(selector)
 
     def alert_ok(self):
-        alert = self.page.on("dialog", lambda dialog: dialog.accept())
+        self.page.on("dialog", lambda dialog: dialog.accept())
 
-    def get_text_from_at(self, selector, attribute):
+    def get_text_from_at(self, selector: str, attribute: str) -> str | None:
         self.wait_for_element_visibility(selector)
-        return self.page.get_attribute(selector, attribute)
+        return self.page.locator(selector).get_attribute(attribute)
 
     # def mark_element(self, selector):
     #     color = "#0000FF"

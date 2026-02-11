@@ -11,11 +11,11 @@ class BaseFlows:
 
         self.base_pages = BasePages(page)
 
-    def get_current_url(self):
-        return self.driver.current_url
+    def get_current_url(self) -> str:
+        return self.page.url
 
-    def navigate_to_url(self, url):
-        self.driver.get(url)
+    def navigate_to_url(self, url: str):
+        self.page.goto(url)
 
 # Example of usage:
 # driver = webdriver.Chrome()  # Or any other browser
